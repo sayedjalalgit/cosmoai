@@ -141,3 +141,67 @@ export async function rateMessage(
   if (!res.ok) throw new Error('Failed to rate message')
   return res.json()
 }
+
+export async function sendMessageStream(
+  message: string,
+  language: string = 'auto',
+  conversationId?: string,
+  model?: string,
+  onToken: (token: string) => void = () => {},
+  onDone: (messageId: string, convId: string) => void = () => {},
+  onError: (error: string) => void = () => {}
+) {
+  const token = getToken()
+  if (!token) throw new Error('Not authenticated')
+
+  const res = await fetch(`${API_URL}/chat/stream`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      message,
+      language,
+      conversation_id: conversationId || null,
+      model: model || null,
+    }),
+  })
+
+  if (!res.ok) throw new Error('Stream failed')
+
+  const reader = res.body?.getReader()
+  const decoder = new TextDecoder()
+
+  if (!reader) throw new Error('No reader')
+
+  let convId = conversationId || ''
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+
+    const chunk = decoder.decode(value)
+    const lines = chunk.split('\n')
+
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        try {
+          const data = JSON.parse(line.slice(6))
+
+          if (data.type === 'start') {
+            convId = data.conversation_id
+          } else if (data.type === 'token') {
+            onToken(data.content)
+          } else if (data.type === 'done') {
+            onDone(data.message_id, convId)
+          } else if (data.type === 'error') {
+            onError(data.message)
+          }
+        } catch {
+          // skip invalid JSON
+        }
+      }
+    }
+  }
+}

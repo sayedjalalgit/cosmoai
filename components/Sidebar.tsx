@@ -13,6 +13,8 @@ interface SidebarProps {
   language: 'en' | 'bn' | 'auto'
   onLanguageChange: (lang: 'en' | 'bn' | 'auto') => void
   onLogout: () => void
+  selectedModel: string
+  onModelChange: (model: string) => void
 }
 export default function Sidebar({
   conversations,
@@ -23,6 +25,8 @@ export default function Sidebar({
   language,
   onLanguageChange,
   onLogout,
+  selectedModel,
+  onModelChange,
 }: SidebarProps) {
   return (
     <aside style={{
@@ -75,14 +79,14 @@ export default function Sidebar({
           display: 'flex', alignItems: 'center', gap: '8px',
           transition: 'all 0.2s',
         }}
-        onMouseEnter={e => {
-          e.currentTarget.style.borderColor = 'var(--accent)'
-          e.currentTarget.style.color = 'var(--accent)'
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.borderColor = 'var(--border)'
-          e.currentTarget.style.color = 'var(--text)'
-        }}>
+          onMouseEnter={e => {
+            e.currentTarget.style.borderColor = 'var(--accent)'
+            e.currentTarget.style.color = 'var(--accent)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.borderColor = 'var(--border)'
+            e.currentTarget.style.color = 'var(--text)'
+          }}>
           <Plus size={14} />
           NEW CONVERSATION
         </button>
@@ -111,6 +115,44 @@ export default function Sidebar({
             {lang === 'en' ? 'EN' : lang === 'bn' ? 'বাং' : 'AUTO'}
           </button>
         ))}
+      </div>
+
+      {/* Model Selector */}
+      <div style={{
+        padding: '12px 16px',
+        borderBottom: '1px solid var(--border)',
+      }}>
+        <div style={{
+          fontSize: '10px',
+          letterSpacing: '2px',
+          color: 'var(--muted)',
+          marginBottom: '8px',
+          textTransform: 'uppercase',
+        }}>AI Model</div>
+
+        <select
+          value={selectedModel}
+          onChange={e => onModelChange(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '8px 10px',
+            background: 'var(--bg3)',
+            border: '1px solid var(--border)',
+            borderRadius: '7px',
+            color: 'var(--text)',
+            fontFamily: 'DM Mono, monospace',
+            fontSize: '11px',
+            cursor: 'pointer',
+            outline: 'none',
+          }}>
+          <option value="llama-3.3-70b-versatile">🦙 Llama 3.3 70B — General</option>
+          <option value="llama-3.1-8b-instant">⚡ Llama 3.1 8B — Ultra Fast</option>
+          <option value="openai/gpt-oss-120b">🤖 GPT OSS 120B — Powerful</option>
+          <option value="openai/gpt-oss-20b">🚀 GPT OSS 20B — Fast</option>
+          <option value="qwen/qwen3-32b">🌐 Qwen 3 32B — Multilingual</option>
+          <option value="moonshotai/kimi-k2-instruct-0905">🌙 Kimi K2 — Best Reasoning</option>
+          <option value="meta-llama/llama-4-scout-17b-16e-instruct">🔭 Llama 4 Scout — Vision</option>
+        </select>
       </div>
 
       {/* Conversation List */}
@@ -176,38 +218,38 @@ export default function Sidebar({
       </div>
 
       {/* Footer */}
-<div style={{
-  padding: '16px 20px',
-  borderTop: '1px solid var(--border)',
-  display: 'flex', alignItems: 'center',
-  justifyContent: 'space-between',
-}}>
-  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-    <div style={{
-      width: '32px', height: '32px',
-      borderRadius: '50%',
-      background: 'linear-gradient(135deg, #1a3a5c, #0a2040)',
-      border: '1px solid var(--border)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: '13px', color: 'var(--accent)',
-    }}>U</div>
-    <div>
-      <div style={{ fontSize: '12px', color: 'var(--text)' }}>User</div>
-      <div style={{ fontSize: '10px', color: 'var(--accent2)', letterSpacing: '1px' }}>PRO PLAN</div>
-    </div>
-  </div>
-  <button onClick={onLogout} style={{
-    background: 'none',
-    border: '1px solid var(--border)',
-    borderRadius: '6px',
-    color: 'var(--muted)',
-    fontFamily: 'DM Mono, monospace',
-    fontSize: '10px',
-    padding: '5px 8px',
-    cursor: 'pointer',
-    letterSpacing: '1px',
-  }}>OUT</button>
-</div>
+      <div style={{
+        padding: '16px 20px',
+        borderTop: '1px solid var(--border)',
+        display: 'flex', alignItems: 'center',
+        justifyContent: 'space-between',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{
+            width: '32px', height: '32px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #1a3a5c, #0a2040)',
+            border: '1px solid var(--border)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '13px', color: 'var(--accent)',
+          }}>U</div>
+          <div>
+            <div style={{ fontSize: '12px', color: 'var(--text)' }}>User</div>
+            <div style={{ fontSize: '10px', color: 'var(--accent2)', letterSpacing: '1px' }}>PRO PLAN</div>
+          </div>
+        </div>
+        <button onClick={onLogout} style={{
+          background: 'none',
+          border: '1px solid var(--border)',
+          borderRadius: '6px',
+          color: 'var(--muted)',
+          fontFamily: 'DM Mono, monospace',
+          fontSize: '10px',
+          padding: '5px 8px',
+          cursor: 'pointer',
+          letterSpacing: '1px',
+        }}>OUT</button>
+      </div>
     </aside>
   )
 }

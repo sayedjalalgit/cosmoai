@@ -162,7 +162,7 @@ export default function ChatWindow({ messages, isLoading, onSuggestion }: ChatWi
       ))}
 
       {/* Typing indicator */}
-      {isLoading && (
+     {isLoading && messages[messages.length - 1]?.content === '' && (
         <div style={{
           padding: '8px 24px',
           display: 'flex',

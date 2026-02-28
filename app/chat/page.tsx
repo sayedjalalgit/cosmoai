@@ -8,11 +8,13 @@ import InputBar from '@/components/InputBar'
 import { Message, Conversation } from '@/lib/types'
 import {
   sendMessage,
+  sendMessageStream,
   getConversations,
   deleteConversation,
   getToken,
   clearToken
 } from '@/lib/api'
+
 
 export default function ChatPage() {
   const router = useRouter()
@@ -21,6 +23,7 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [language, setLanguage] = useState<'en' | 'bn' | 'auto'>('auto')
   const [messages, setMessages] = useState<Message[]>([])
+  const [selectedModel, setSelectedModel] = useState('llama-3.3-70b-versatile')
 
   // Check auth on load
   useEffect(() => {
@@ -94,42 +97,69 @@ export default function ChatPage() {
     setMessages(prev => [...prev, userMsg])
     setIsLoading(true)
 
-    try {
-      const data = await sendMessage(text, language, currentId || undefined)
-
-      const convId = data.conversation_id
-
-      if (!currentId) {
-        setCurrentId(convId)
-        const newConv: Conversation = {
-          id: convId,
-          title: text.slice(0, 40),
-          messages: [],
-          createdAt: new Date(),
-        }
-        setConversations(prev => [newConv, ...prev])
-      }
-
-      const aiMsg: Message = {
-        id: data.message.id,
-        role: 'assistant',
-        content: data.message.content,
-        timestamp: new Date(data.message.created_at),
-      }
-      setMessages(prev => [...prev, aiMsg])
-
-    } catch (err: any) {
-      const errMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: `Error: ${err.message}`,
-        timestamp: new Date(),
-      }
-      setMessages(prev => [...prev, errMsg])
+    // Add empty AI message that will be filled by streaming
+    const tempId = (Date.now() + 1).toString()
+    const aiMsg: Message = {
+      id: tempId,
+      role: 'assistant',
+      content: '',
+      timestamp: new Date(),
     }
+    setMessages(prev => [...prev, aiMsg])
 
-    setIsLoading(false)
-  }, [currentId, isLoading, language])
+    try {
+      await sendMessageStream(
+        text,
+        language,
+        currentId || undefined,
+        selectedModel,
+
+        // onToken — append each word
+        (token) => {
+          setMessages(prev => prev.map(m =>
+            m.id === tempId
+              ? { ...m, content: m.content + token }
+              : m
+          ))
+        },
+
+        // onDone — update IDs
+        (messageId, convId) => {
+          if (!currentId) {
+            setCurrentId(convId)
+            const newConv: Conversation = {
+              id: convId,
+              title: text.slice(0, 40),
+              messages: [],
+              createdAt: new Date(),
+            }
+            setConversations(prev => [newConv, ...prev])
+          }
+          setMessages(prev => prev.map(m =>
+            m.id === tempId ? { ...m, id: messageId } : m
+          ))
+          setIsLoading(false)
+        },
+
+        // onError
+        (error) => {
+          setMessages(prev => prev.map(m =>
+            m.id === tempId
+              ? { ...m, content: `Error: ${error}` }
+              : m
+          ))
+          setIsLoading(false)
+        }
+      )
+    } catch (err: any) {
+      setMessages(prev => prev.map(m =>
+        m.id === tempId
+          ? { ...m, content: `Error: ${err.message}` }
+          : m
+      ))
+      setIsLoading(false)
+    }
+  }, [currentId, isLoading, language, selectedModel])
 
   const handleLogout = () => {
     clearToken()
@@ -141,6 +171,8 @@ export default function ChatPage() {
   return (
     <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)' }}>
 
+  
+
       <Sidebar
         conversations={conversations}
         currentId={currentId}
@@ -150,6 +182,8 @@ export default function ChatPage() {
         language={language}
         onLanguageChange={setLanguage}
         onLogout={handleLogout}
+        selectedModel={selectedModel}
+        onModelChange={setSelectedModel}
       />
 
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
