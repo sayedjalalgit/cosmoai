@@ -7,14 +7,13 @@ import ChatWindow from '@/components/ChatWindow'
 import InputBar from '@/components/InputBar'
 import { Message, Conversation } from '@/lib/types'
 import {
-  sendMessage,
   sendMessageStream,
   getConversations,
+  getConversation,
   deleteConversation,
   getToken,
   clearToken
 } from '@/lib/api'
-
 
 export default function ChatPage() {
   const router = useRouter()
@@ -53,7 +52,6 @@ export default function ChatPage() {
   const handleSelect = useCallback(async (id: string) => {
     setCurrentId(id)
     try {
-      const { getConversation } = await import('@/lib/api')
       const data = await getConversation(id)
       const msgs: Message[] = data.messages.map((m: any) => ({
         id: m.id,
@@ -85,19 +83,21 @@ export default function ChatPage() {
     }
   }, [currentId])
 
-  const handleSend = useCallback(async (text: string) => {
+  const handleSend = useCallback(async (text: string, image?: string) => {
     if (isLoading) return
 
+    // Add user message
     const userMsg: Message = {
       id: Date.now().toString(),
       role: 'user',
       content: text,
       timestamp: new Date(),
+      image: image,
     }
     setMessages(prev => [...prev, userMsg])
     setIsLoading(true)
 
-    // Add empty AI message that will be filled by streaming
+    // Add empty AI message for streaming
     const tempId = (Date.now() + 1).toString()
     const aiMsg: Message = {
       id: tempId,
@@ -113,6 +113,7 @@ export default function ChatPage() {
         language,
         currentId || undefined,
         selectedModel,
+        image,
 
         // onToken — append each word
         (token) => {
@@ -123,7 +124,7 @@ export default function ChatPage() {
           ))
         },
 
-        // onDone — update IDs
+        // onDone — update IDs and conversations
         (messageId, convId) => {
           if (!currentId) {
             setCurrentId(convId)
@@ -171,8 +172,6 @@ export default function ChatPage() {
   return (
     <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)' }}>
 
-  
-
       <Sidebar
         conversations={conversations}
         currentId={currentId}
@@ -188,6 +187,7 @@ export default function ChatPage() {
 
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
+        {/* Top bar */}
         <div style={{
           padding: '16px 28px',
           borderBottom: '1px solid var(--border)',
@@ -209,7 +209,15 @@ export default function ChatPage() {
               borderRadius: '20px',
               fontSize: '10px', letterSpacing: '1px',
               color: 'var(--accent2)',
-            }}>LLAMA 3.3 · GROQ</span>
+            }}>
+              {selectedModel.includes('llama-4') ? '🔭 LLAMA 4' :
+               selectedModel.includes('kimi') ? '🌙 KIMI K2' :
+               selectedModel.includes('qwen') ? '🌐 QWEN 3' :
+               selectedModel.includes('gpt-oss-120b') ? '🤖 GPT OSS 120B' :
+               selectedModel.includes('gpt-oss-20b') ? '🚀 GPT OSS 20B' :
+               selectedModel.includes('llama-3.1') ? '⚡ LLAMA 3.1' :
+               '🦙 LLAMA 3.3'} · GROQ
+            </span>
             <div style={{
               width: '8px', height: '8px', borderRadius: '50%',
               background: 'var(--accent2)',
@@ -221,13 +229,14 @@ export default function ChatPage() {
         <ChatWindow
           messages={messages}
           isLoading={isLoading}
-          onSuggestion={handleSend}
+          onSuggestion={(text) => handleSend(text)}
         />
 
         <InputBar
           onSend={handleSend}
           isLoading={isLoading}
           language={language}
+          selectedModel={selectedModel}
         />
       </main>
     </div>

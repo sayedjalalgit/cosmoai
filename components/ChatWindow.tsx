@@ -130,6 +130,7 @@ export default function ChatWindow({ messages, isLoading, onSuggestion }: ChatWi
           animation: 'slideUp 0.3s ease',
         }}>
 
+          {/* AI Avatar */}
           {msg.role === 'assistant' && (
             <div style={{
               width: '32px', height: '32px', minWidth: '32px',
@@ -141,6 +142,7 @@ export default function ChatWindow({ messages, isLoading, onSuggestion }: ChatWi
             }}>🛸</div>
           )}
 
+          {/* Message Bubble */}
           <div style={{
             maxWidth: '72%',
             padding: '14px 18px',
@@ -156,13 +158,33 @@ export default function ChatWindow({ messages, isLoading, onSuggestion }: ChatWi
             lineHeight: '1.75',
             color: 'var(--text)',
           }}>
+
+            {/* Show image if attached */}
+            {msg.image && (
+              <div style={{ marginBottom: '10px' }}>
+                <img
+                  src={msg.image}
+                  alt="uploaded"
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '300px',
+                    borderRadius: '8px',
+                    display: 'block',
+                    border: '1px solid var(--border)',
+                    objectFit: 'contain',
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Message text */}
             {formatContent(msg.content)}
           </div>
         </div>
       ))}
 
-      {/* Typing indicator */}
-     {isLoading && messages[messages.length - 1]?.content === '' && (
+      {/* Typing indicator — only show when no content yet */}
+      {isLoading && messages[messages.length - 1]?.content === '' && (
         <div style={{
           padding: '8px 24px',
           display: 'flex',

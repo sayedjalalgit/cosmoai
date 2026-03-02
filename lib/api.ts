@@ -147,6 +147,7 @@ export async function sendMessageStream(
   language: string = 'auto',
   conversationId?: string,
   model?: string,
+  image?: string,
   onToken: (token: string) => void = () => {},
   onDone: (messageId: string, convId: string) => void = () => {},
   onError: (error: string) => void = () => {}
@@ -165,6 +166,7 @@ export async function sendMessageStream(
       language,
       conversation_id: conversationId || null,
       model: model || null,
+      image: image || null,
     }),
   })
 

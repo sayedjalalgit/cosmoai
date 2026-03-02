@@ -4,24 +4,28 @@ import { useRef, useState } from 'react'
 import { Send, Paperclip } from 'lucide-react'
 import { getToken } from '@/lib/api'
 
+
 interface InputBarProps {
-  onSend: (message: string) => void
+  onSend: (message: string, image?: string) => void
   isLoading: boolean
   language: 'en' | 'bn' | 'auto'
+  selectedModel: string
 }
 
-export default function InputBar({ onSend, isLoading, language }: InputBarProps) {
+export default function InputBar({ onSend, isLoading, language, selectedModel }: InputBarProps) {
   const [text, setText] = useState('')
   const [uploading, setUploading] = useState(false)
   const [uploadedDocs, setUploadedDocs] = useState<string[]>([])
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const [imageBase64, setImageBase64] = useState<string | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
 
   const placeholder =
     language === 'bn'
       ? 'আপনার প্রশ্ন লিখুন...'
       : language === 'en'
-      ? 'Ask anything...'
-      : 'Ask anything... / যেকোনো প্রশ্ন করুন...'
+        ? 'Ask anything...'
+        : 'Ask anything... / যেকোনো প্রশ্ন করুন...'
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -31,13 +35,17 @@ export default function InputBar({ onSend, isLoading, language }: InputBarProps)
   }
 
   const handleSend = () => {
+
     if (!text.trim() || isLoading) return
-    onSend(text.trim())
+    onSend(text.trim(), imageBase64 || undefined)
     setText('')
+    setImageBase64(null)
+    setImagePreview(null)
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto'
     }
   }
+
 
   const handleInput = () => {
     const el = textareaRef.current
@@ -81,6 +89,25 @@ export default function InputBar({ onSend, isLoading, language }: InputBarProps)
     e.target.value = ''
   }
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      const base64 = reader.result as string
+      setImageBase64(base64)
+      setImagePreview(base64)
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }
+
+  const removeImage = () => {
+    setImageBase64(null)
+    setImagePreview(null)
+  }
+
   const removeDoc = (index: number) => {
     setUploadedDocs(prev => prev.filter((_, i) => i !== index))
   }
@@ -116,20 +143,88 @@ export default function InputBar({ onSend, isLoading, language }: InputBarProps)
             gap: '6px',
             transition: 'all 0.2s',
           }}
-          onMouseEnter={e => {
-            if (!uploading) {
-              e.currentTarget.style.borderColor = 'var(--accent)'
-              e.currentTarget.style.color = 'var(--accent)'
-            }
-          }}
-          onMouseLeave={e => {
-            if (!uploading) {
-              e.currentTarget.style.borderColor = 'var(--border)'
-              e.currentTarget.style.color = 'var(--muted)'
-            }
-          }}>
+            onMouseEnter={e => {
+              if (!uploading) {
+                e.currentTarget.style.borderColor = 'var(--accent)'
+                e.currentTarget.style.color = 'var(--accent)'
+              }
+            }}
+            onMouseLeave={e => {
+              if (!uploading) {
+                e.currentTarget.style.borderColor = 'var(--border)'
+                e.currentTarget.style.color = 'var(--muted)'
+              }
+            }}>
             <Paperclip size={12} />
             {uploading ? 'UPLOADING...' : 'UPLOAD PDF'}
+
+            {/* Image Upload — only show for vision models */}
+            {selectedModel.includes('llama-4') && (
+              <label style={{
+                padding: '6px 12px',
+                border: '1px dashed var(--border)',
+                borderRadius: '7px',
+                color: 'var(--muted)',
+                fontFamily: 'DM Mono, monospace',
+                fontSize: '11px',
+                letterSpacing: '1px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.2s',
+              }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = 'var(--accent)'
+                  e.currentTarget.style.color = 'var(--accent)'
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.borderColor = 'var(--border)'
+                  e.currentTarget.style.color = 'var(--muted)'
+                }}>
+                🖼️ ADD IMAGE
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  style={{ display: 'none' }}
+                />
+              </label>
+            )}
+
+            {/* Image Preview */}
+            {imagePreview && (
+              <div style={{ position: 'relative', display: 'inline-block' }}>
+                <img
+                  src={imagePreview}
+                  alt="preview"
+                  style={{
+                    height: '40px',
+                    width: '40px',
+                    objectFit: 'cover',
+                    borderRadius: '6px',
+                    border: '1px solid var(--accent)',
+                  }}
+                />
+                <button
+                  onClick={removeImage}
+                  style={{
+                    position: 'absolute',
+                    top: '-6px', right: '-6px',
+                    width: '16px', height: '16px',
+                    borderRadius: '50%',
+                    background: '#FF5F6D',
+                    border: 'none',
+                    color: 'white',
+                    fontSize: '10px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>×</button>
+              </div>
+            )}
+
             <input
               type="file"
               accept=".pdf"
