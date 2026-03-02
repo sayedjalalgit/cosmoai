@@ -202,7 +202,36 @@ export default function ChatPage() {
           }}>
             {currentConv?.title || 'Private Intelligence System'}
           </span>
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+
+            {/* Upgrade Button */}
+            <button
+              onClick={() => router.push('/pricing')}
+              style={{
+                padding: '4px 12px',
+                border: '1px solid rgba(167,139,250,0.4)',
+                borderRadius: '20px',
+                background: 'transparent',
+                color: '#A78BFA',
+                fontSize: '10px',
+                letterSpacing: '2px',
+                cursor: 'pointer',
+                fontFamily: 'DM Mono, monospace',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = 'rgba(167,139,250,0.1)'
+                e.currentTarget.style.borderColor = '#A78BFA'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'transparent'
+                e.currentTarget.style.borderColor = 'rgba(167,139,250,0.4)'
+              }}>
+              ⚡ UPGRADE
+            </button>
+
+            {/* Model Badge */}
             <span style={{
               padding: '4px 10px',
               border: '1px solid var(--border)',
@@ -211,18 +240,21 @@ export default function ChatPage() {
               color: 'var(--accent2)',
             }}>
               {selectedModel.includes('llama-4') ? '🔭 LLAMA 4' :
-               selectedModel.includes('kimi') ? '🌙 KIMI K2' :
-               selectedModel.includes('qwen') ? '🌐 QWEN 3' :
-               selectedModel.includes('gpt-oss-120b') ? '🤖 GPT OSS 120B' :
-               selectedModel.includes('gpt-oss-20b') ? '🚀 GPT OSS 20B' :
-               selectedModel.includes('llama-3.1') ? '⚡ LLAMA 3.1' :
-               '🦙 LLAMA 3.3'} · GROQ
+                selectedModel.includes('kimi') ? '🌙 KIMI K2' :
+                  selectedModel.includes('qwen') ? '🌐 QWEN 3' :
+                    selectedModel.includes('gpt-oss-120b') ? '🤖 GPT OSS 120B' :
+                      selectedModel.includes('gpt-oss-20b') ? '🚀 GPT OSS 20B' :
+                        selectedModel.includes('llama-3.1') ? '⚡ LLAMA 3.1' :
+                          '🦙 LLAMA 3.3'} · GROQ
             </span>
+
+            {/* Green dot */}
             <div style={{
               width: '8px', height: '8px', borderRadius: '50%',
               background: 'var(--accent2)',
               boxShadow: '0 0 8px var(--accent2)',
             }} />
+
           </div>
         </div>
 

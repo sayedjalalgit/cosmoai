@@ -53,8 +53,8 @@ export default function Home() {
           boxShadow: '0 0 30px rgba(99,210,255,0.4)',
           transition: 'all 0.2s',
         }}
-        onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-        onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
+          onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+          onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
           START CHATTING
         </button>
 
@@ -68,15 +68,29 @@ export default function Home() {
           letterSpacing: '2px', cursor: 'pointer',
           transition: 'all 0.2s',
         }}
-        onMouseEnter={e => {
-          e.currentTarget.style.borderColor = 'var(--accent)'
-          e.currentTarget.style.color = 'var(--accent)'
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.borderColor = 'var(--border)'
-          e.currentTarget.style.color = 'var(--text)'
-        }}>
+          onMouseEnter={e => {
+            e.currentTarget.style.borderColor = 'var(--accent)'
+            e.currentTarget.style.color = 'var(--accent)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.borderColor = 'var(--border)'
+            e.currentTarget.style.color = 'var(--text)'
+          }}>
           LEARN MORE
+        </button>
+        <button onClick={() => router.push('/pricing')} style={{
+          padding: '12px 28px',
+          border: '1px solid rgba(167,139,250,0.4)',
+          borderRadius: '8px',
+          background: 'transparent',
+          color: '#A78BFA',
+          fontSize: '11px',
+          letterSpacing: '3px',
+          cursor: 'pointer',
+          fontFamily: 'DM Mono, monospace',
+          transition: 'all 0.2s',
+        }}>
+          VIEW PRICING
         </button>
       </div>
 
