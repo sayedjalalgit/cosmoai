@@ -130,7 +130,7 @@ export default function PricingPage() {
     } catch (err) {
       alert('Checkout failed. Please try again.')
     }
-    setLoading(false)
+    setLoading(null)
   }
 
   return (
