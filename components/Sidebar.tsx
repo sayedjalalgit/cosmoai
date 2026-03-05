@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Conversation } from '@/lib/types'
-import { MessageSquare, Plus, Trash2 } from 'lucide-react'
+import { MessageSquare, Plus, Trash2, X, Menu } from 'lucide-react'
 
 interface SidebarProps {
   conversations: Conversation[]
@@ -16,6 +16,7 @@ interface SidebarProps {
   selectedModel: string
   onModelChange: (model: string) => void
 }
+
 export default function Sidebar({
   conversations,
   currentId,
@@ -28,7 +29,31 @@ export default function Sidebar({
   selectedModel,
   onModelChange,
 }: SidebarProps) {
-  return (
+  const [isOpen, setIsOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+      if (window.innerWidth >= 768) setIsOpen(false)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Close sidebar when selecting conversation on mobile
+  const handleSelect = (id: string) => {
+    onSelect(id)
+    if (isMobile) setIsOpen(false)
+  }
+
+  const handleNew = () => {
+    onNew()
+    if (isMobile) setIsOpen(false)
+  }
+
+  const sidebarContent = (
     <aside style={{
       width: '260px',
       minWidth: '260px',
@@ -37,6 +62,12 @@ export default function Sidebar({
       display: 'flex',
       flexDirection: 'column',
       height: '100vh',
+      position: isMobile ? 'fixed' : 'relative',
+      top: 0,
+      left: 0,
+      zIndex: 1000,
+      transition: 'transform 0.3s ease',
+      transform: isMobile && !isOpen ? 'translateX(-100%)' : 'translateX(0)',
     }}>
 
       {/* Logo */}
@@ -44,28 +75,47 @@ export default function Sidebar({
         padding: '24px 20px 20px',
         borderBottom: '1px solid var(--border)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-          <div style={{
-            width: '36px', height: '36px',
-            background: 'linear-gradient(135deg, var(--accent), var(--accent2))',
-            borderRadius: '10px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '18px',
-            boxShadow: '0 0 20px rgba(99,210,255,0.3)',
-          }}>🛸</div>
-          <span style={{
-            fontFamily: 'Syne, sans-serif',
-            fontWeight: 800,
-            fontSize: '20px',
-            letterSpacing: '3px',
-            background: 'linear-gradient(90deg, var(--accent), var(--accent2))',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-          }}>COSMOAI</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{
+              width: '36px', height: '36px',
+              background: 'linear-gradient(135deg, var(--accent), var(--accent2))',
+              borderRadius: '10px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '18px',
+              boxShadow: '0 0 20px rgba(99,210,255,0.3)',
+            }}>🛸</div>
+            <span style={{
+              fontFamily: 'Syne, sans-serif',
+              fontWeight: 800,
+              fontSize: '20px',
+              letterSpacing: '3px',
+              background: 'linear-gradient(90deg, var(--accent), var(--accent2))',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}>COSMOAI</span>
+          </div>
+
+          {/* Close button — mobile only */}
+          {isMobile && (
+            <button onClick={() => setIsOpen(false)} style={{
+              background: 'none',
+              border: '1px solid var(--border)',
+              borderRadius: '6px',
+              color: 'var(--muted)',
+              cursor: 'pointer',
+              padding: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <X size={16} />
+            </button>
+          )}
         </div>
 
         {/* New Chat Button */}
-        <button onClick={onNew} style={{
+        <button onClick={handleNew} style={{
           width: '100%',
           padding: '10px 14px',
           background: 'transparent',
@@ -145,13 +195,13 @@ export default function Sidebar({
             cursor: 'pointer',
             outline: 'none',
           }}>
-          <option value="llama-3.3-70b-versatile">🦙 Llama 3.3 70B — General</option>
-          <option value="llama-3.1-8b-instant">⚡ Llama 3.1 8B — Ultra Fast</option>
-          <option value="openai/gpt-oss-120b">🤖 GPT OSS 120B — Powerful</option>
-          <option value="openai/gpt-oss-20b">🚀 GPT OSS 20B — Fast</option>
-          <option value="qwen/qwen3-32b">🌐 Qwen 3 32B — Multilingual</option>
-          <option value="moonshotai/kimi-k2-instruct-0905">🌙 Kimi K2 — Best Reasoning</option>
-          <option value="meta-llama/llama-4-scout-17b-16e-instruct">🔭 Llama 4 Scout — Vision</option>
+          <option value="llama-3.3-70b-versatile">🧠 Smart — Best for most tasks</option>
+          <option value="llama-3.1-8b-instant">⚡ Flash — Ultra fast replies</option>
+          <option value="openai/gpt-oss-120b">🔬 Genius — Most powerful</option>
+          <option value="openai/gpt-oss-20b">🚀 Turbo — Fast & capable</option>
+          <option value="qwen/qwen3-32b">🌐 Multilingual — Best for Bangla</option>
+          <option value="moonshotai/kimi-k2-instruct-0905">💡 Reasoning — Deep thinking</option>
+          <option value="meta-llama/llama-4-scout-17b-16e-instruct">👁️ Vision — Understands images</option>
         </select>
       </div>
 
@@ -176,7 +226,7 @@ export default function Sidebar({
 
         {conversations.map(conv => (
           <div key={conv.id}
-            onClick={() => onSelect(conv.id)}
+            onClick={() => handleSelect(conv.id)}
             style={{
               padding: '9px 12px',
               borderRadius: '7px',
@@ -251,5 +301,50 @@ export default function Sidebar({
         }}>OUT</button>
       </div>
     </aside>
+  )
+
+  return (
+    <>
+      {/* Hamburger button — mobile only */}
+      {isMobile && !isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          style={{
+            position: 'fixed',
+            top: '16px',
+            left: '16px',
+            zIndex: 999,
+            background: 'var(--bg2)',
+            border: '1px solid var(--border)',
+            borderRadius: '8px',
+            color: 'var(--accent)',
+            cursor: 'pointer',
+            padding: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 0 20px rgba(99,210,255,0.15)',
+          }}
+        >
+          <Menu size={20} />
+        </button>
+      )}
+
+      {/* Overlay — mobile only */}
+      {isMobile && isOpen && (
+        <div
+          onClick={() => setIsOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.6)',
+            zIndex: 999,
+            backdropFilter: 'blur(2px)',
+          }}
+        />
+      )}
+
+      {sidebarContent}
+    </>
   )
 }
