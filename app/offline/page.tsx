@@ -1,7 +1,5 @@
-export const viewport = {
-  width: 'device-width',
-  initialScale: 1,
-}
+'use client'
+
 export default function OfflinePage() {
   return (
     <div style={{

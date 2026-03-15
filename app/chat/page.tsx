@@ -175,7 +175,7 @@ export default function ChatPage() {
   return (
     <div style={{
       display: 'flex',
-      height: '100vh',
+
       height: '100dvh', // dynamic viewport height — fixes mobile browser bar
       background: 'var(--bg)',
       overflow: 'hidden',
