@@ -195,13 +195,13 @@ export default function Sidebar({
             cursor: 'pointer',
             outline: 'none',
           }}>
-          <option value="llama-3.3-70b-versatile">🧠 Smart — Best for most tasks</option>
-          <option value="llama-3.1-8b-instant">⚡ Flash — Ultra fast replies</option>
-          <option value="openai/gpt-oss-120b">🔬 Genius — Most powerful</option>
-          <option value="openai/gpt-oss-20b">🚀 Turbo — Fast & capable</option>
-          <option value="qwen/qwen3-32b">🌐 Multilingual — Best for Bangla</option>
-          <option value="moonshotai/kimi-k2-instruct-0905">💡 Reasoning — Deep thinking</option>
-          <option value="meta-llama/llama-4-scout-17b-16e-instruct">👁️ Vision — Understands images</option>
+          <option value="llama-3.3-70b-versatile">🧠 Smart</option>
+          <option value="llama-3.1-8b-instant">⚡ Flash</option>
+          <option value="openai/gpt-oss-120b">🔬 Genius</option>
+          <option value="openai/gpt-oss-20b">🚀 Turbo</option>
+          <option value="qwen/qwen3-32b">🌐 Multilingual</option>
+          <option value="moonshotai/kimi-k2-instruct-0905">💡 Reasoning</option>
+          <option value="meta-llama/llama-4-scout-17b-16e-instruct">👁️ Vision</option>
         </select>
       </div>
 

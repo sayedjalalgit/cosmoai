@@ -23,8 +23,15 @@ export default function ChatPage() {
   const [language, setLanguage] = useState<'en' | 'bn' | 'auto'>('auto')
   const [messages, setMessages] = useState<Message[]>([])
   const [selectedModel, setSelectedModel] = useState('llama-3.3-70b-versatile')
+  const [isMobile, setIsMobile] = useState(false)
 
-  // Check auth on load
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
   useEffect(() => {
     const token = getToken()
     if (!token) {
@@ -86,7 +93,6 @@ export default function ChatPage() {
   const handleSend = useCallback(async (text: string, image?: string) => {
     if (isLoading) return
 
-    // Add user message
     const userMsg: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -97,7 +103,6 @@ export default function ChatPage() {
     setMessages(prev => [...prev, userMsg])
     setIsLoading(true)
 
-    // Add empty AI message for streaming
     const tempId = (Date.now() + 1).toString()
     const aiMsg: Message = {
       id: tempId,
@@ -114,17 +119,11 @@ export default function ChatPage() {
         currentId || undefined,
         selectedModel,
         image,
-
-        // onToken — append each word
         (token) => {
           setMessages(prev => prev.map(m =>
-            m.id === tempId
-              ? { ...m, content: m.content + token }
-              : m
+            m.id === tempId ? { ...m, content: m.content + token } : m
           ))
         },
-
-        // onDone — update IDs and conversations
         (messageId, convId) => {
           if (!currentId) {
             setCurrentId(convId)
@@ -141,22 +140,16 @@ export default function ChatPage() {
           ))
           setIsLoading(false)
         },
-
-        // onError
         (error) => {
           setMessages(prev => prev.map(m =>
-            m.id === tempId
-              ? { ...m, content: `Error: ${error}` }
-              : m
+            m.id === tempId ? { ...m, content: `Error: ${error}` } : m
           ))
           setIsLoading(false)
         }
       )
     } catch (err: any) {
       setMessages(prev => prev.map(m =>
-        m.id === tempId
-          ? { ...m, content: `Error: ${err.message}` }
-          : m
+        m.id === tempId ? { ...m, content: `Error: ${err.message}` } : m
       ))
       setIsLoading(false)
     }
@@ -169,8 +162,24 @@ export default function ChatPage() {
 
   const currentConv = conversations.find(c => c.id === currentId)
 
+  // Model display name
+  const modelDisplay =
+    selectedModel.includes('llama-4') ? '👁️ Vision' :
+    selectedModel.includes('kimi') ? '💡 Reasoning' :
+    selectedModel.includes('qwen') ? '🌐 Multilingual' :
+    selectedModel.includes('gpt-oss-120b') ? '🔬 Genius' :
+    selectedModel.includes('gpt-oss-20b') ? '🚀 Turbo' :
+    selectedModel.includes('llama-3.1') ? '⚡ Flash' :
+    '🧠 Smart'
+
   return (
-    <div style={{ display: 'flex', height: '100vh', background: 'var(--bg)' }}>
+    <div style={{
+      display: 'flex',
+      height: '100vh',
+      height: '100dvh', // dynamic viewport height — fixes mobile browser bar
+      background: 'var(--bg)',
+      overflow: 'hidden',
+    }}>
 
       <Sidebar
         conversations={conversations}
@@ -185,76 +194,106 @@ export default function ChatPage() {
         onModelChange={setSelectedModel}
       />
 
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      {/* Main content — full width on mobile */}
+      <main style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        width: '100%',
+        minWidth: 0, // prevents flex overflow
+      }}>
 
         {/* Top bar */}
         <div style={{
-          padding: '16px 28px',
+          padding: isMobile ? '12px 16px 12px 56px' : '16px 28px',
           borderBottom: '1px solid var(--border)',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
           background: 'var(--bg2)',
+          flexShrink: 0,
         }}>
+          {/* Title */}
           <span style={{
             fontFamily: 'Syne, sans-serif',
-            fontSize: '13px', fontWeight: 600,
-            letterSpacing: '3px', color: 'var(--muted)',
+            fontSize: isMobile ? '11px' : '13px',
+            fontWeight: 600,
+            letterSpacing: isMobile ? '1px' : '3px',
+            color: 'var(--muted)',
             textTransform: 'uppercase',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            maxWidth: isMobile ? '120px' : '300px',
           }}>
-            {currentConv?.title || 'Private Intelligence System'}
+            {currentConv?.title || 'COSMOAI'}
           </span>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: isMobile ? '8px' : '12px',
+            flexShrink: 0,
+          }}>
 
             {/* Upgrade Button */}
             <button
               onClick={() => router.push('/pricing')}
               style={{
-                padding: '4px 12px',
+                padding: isMobile ? '4px 8px' : '4px 12px',
                 border: '1px solid rgba(167,139,250,0.4)',
                 borderRadius: '20px',
                 background: 'transparent',
                 color: '#A78BFA',
                 fontSize: '10px',
-                letterSpacing: '2px',
+                letterSpacing: isMobile ? '0px' : '2px',
                 cursor: 'pointer',
                 fontFamily: 'DM Mono, monospace',
                 transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = 'rgba(167,139,250,0.1)'
-                e.currentTarget.style.borderColor = '#A78BFA'
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = 'transparent'
-                e.currentTarget.style.borderColor = 'rgba(167,139,250,0.4)'
+                whiteSpace: 'nowrap',
               }}>
-              ⚡ UPGRADE
+              ⚡ {isMobile ? '' : 'UPGRADE'}
             </button>
 
-            {/* Model Badge */}
-            <span style={{
-              padding: '4px 10px',
-              border: '1px solid var(--border)',
-              borderRadius: '20px',
-              fontSize: '10px', letterSpacing: '1px',
-              color: 'var(--accent2)',
-            }}>
-              {selectedModel.includes('llama-4') ? '🔭 LLAMA 4' :
-                selectedModel.includes('kimi') ? '🌙 KIMI K2' :
-                  selectedModel.includes('qwen') ? '🌐 QWEN 3' :
-                    selectedModel.includes('gpt-oss-120b') ? '🤖 GPT OSS 120B' :
-                      selectedModel.includes('gpt-oss-20b') ? '🚀 GPT OSS 20B' :
-                        selectedModel.includes('llama-3.1') ? '⚡ LLAMA 3.1' :
-                          '🦙 LLAMA 3.3'} · GROQ
-            </span>
+            {/* Model Badge — hidden on small mobile */}
+            {!isMobile && (
+              <span style={{
+                padding: '4px 10px',
+                border: '1px solid var(--border)',
+                borderRadius: '20px',
+                fontSize: '10px',
+                letterSpacing: '1px',
+                color: 'var(--accent2)',
+                whiteSpace: 'nowrap',
+              }}>
+                {modelDisplay} · GROQ
+              </span>
+            )}
+
+            {/* Model Badge — compact on mobile */}
+            {isMobile && (
+              <span style={{
+                padding: '4px 8px',
+                border: '1px solid var(--border)',
+                borderRadius: '20px',
+                fontSize: '10px',
+                color: 'var(--accent2)',
+                whiteSpace: 'nowrap',
+              }}>
+                {modelDisplay}
+              </span>
+            )}
 
             {/* Green dot */}
             <div style={{
-              width: '8px', height: '8px', borderRadius: '50%',
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
               background: 'var(--accent2)',
               boxShadow: '0 0 8px var(--accent2)',
+              flexShrink: 0,
             }} />
-
           </div>
         </div>
 
